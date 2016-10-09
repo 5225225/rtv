@@ -5,6 +5,7 @@ import time
 import curses
 
 from . import docs
+from . import markdown
 from .content import SubmissionContent, SubredditContent
 from .page import Page, PageController, logged_in
 from .objects import Navigator, Color, Command
@@ -193,6 +194,7 @@ class SubmissionPage(Page):
         # If there isn't enough space to fit the comment body on the screen,
         # replace the last line with a notification.
         split_body = data['split_body']
+        text = data['text']
         if data['n_rows'] > n_rows:
             # Only when there is a single comment on the page and not inverted
             if not inverted and len(self._subwindows) == 0:
@@ -227,9 +229,14 @@ class SubmissionPage(Page):
                 text, attr = self.term.saved
                 self.term.add_line(win, text, attr=attr)
 
-        for row, text in enumerate(split_body, start=offset+1):
-            if row in valid_rows:
-                self.term.add_line(win, text, row, 1)
+#        for row, text in enumerate(split_body, start=offset+1):
+#            if row in valid_rows:
+#                self.term.add_line(win, text, row, 1)
+
+        for textchunk, attr in markdown.format_markdown(text):
+            self.term.add_line(win, textchunk, attr=attr)
+
+
 
         # Unfortunately vline() doesn't support custom color so we have to
         # build it one segment at a time.
